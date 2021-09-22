@@ -13,12 +13,24 @@ end
 
 class Game
   MAX_GUESSES = 6
+  attr_accessor :secret_word, :correct_letters, :incorrect_letters, :num_wrong_guesses
 
-  def initialize
-    @secret_word = Dictionary.new.secret_word.chars
-    @correct_letters = []
-    @incorrect_letters = []
-    @num_wrong_guesses = 0
+  def initialize(
+    secret_word = Dictionary.new.secret_word.chars,
+    correct_letters = [],
+    incorrect_letters = [],
+    num_wrong_guesses = 0
+  )
+    @secret_word = secret_word
+    @correct_letters = correct_letters
+    @incorrect_letters = incorrect_letters
+    @num_wrong_guesses = num_wrong_guesses
+  end
+
+  def to_yaml
+    YAML.dump ({
+      
+    })
   end
 
   def guess_word
@@ -28,7 +40,7 @@ class Game
   end
 
   def check_word(word)
-    word == @secret_word.join
+    word == secret_word.join
   end
 
   def guess_letter
@@ -42,39 +54,40 @@ class Game
   end
 
   def check_letter(letter)
-    if @secret_word.include?(letter)
-      @correct_letters.include?(letter) ? return : @correct_letters << letter
+    if secret_word.include?(letter)
+      correct_letters.include?(letter) ? return : correct_letters << letter
     else
-      @incorrect_letters << letter
-      @num_wrong_guesses += 1
+      incorrect_letters.include?(letter) ? return : incorrect_letters << letter
+
+      self.num_wrong_guesses += 1
     end
   end
 
-  def display_letters
-    @secret_word.each do |char|
-      print @correct_letters.include?(char) ? "#{char} " : '_ '
+  def show_current_state
+    secret_word.each do |char|
+      print correct_letters.include?(char) ? "#{char} " : '_ '
     end
+    puts "| Number of wrong guesses: #{num_wrong_guesses}/#{MAX_GUESSES}"
+    puts "Incorrect letters: #{incorrect_letters.join(' ')}"
   end
 
-  def result
-    puts @num_wrong_guesses == MAX_GUESSES ? 'You lost!' : 'You won!'
-    puts "The word was #{@secret_word.join}"
+  def show_result
+    puts num_wrong_guesses == MAX_GUESSES ? 'You lost!' : 'You won!'
+    puts "The word was #{secret_word.join}"
   end
 
   def play
-    until @num_wrong_guesses == MAX_GUESSES || @correct_letters.sort == @secret_word.uniq.sort
-      display_letters
-      puts "| Number of wrong guesses: #{@num_wrong_guesses}/#{MAX_GUESSES}"
-      puts "Incorrect letters: #{@incorrect_letters.join(' ')}"
+    until num_wrong_guesses == MAX_GUESSES ||
+          correct_letters.sort == secret_word.uniq.sort
+      show_current_state
       word = guess_word
       if word.empty?
-        letter = guess_letter
-        check_letter(letter)
+        check_letter(guess_letter)
       else
-        check_word(word) ? break : @num_wrong_guesses += 1
+        check_word(word) ? break : num_wrong_guesses += 1
       end
     end
-    result
+    show_result
   end
 end
 
