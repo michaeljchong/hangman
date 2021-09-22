@@ -4,29 +4,31 @@ class Dictionary
   def initialize
     file = File.open('5desk.txt', 'r')
     word_list = file.readlines.map { |word| word.strip.downcase }
-    @dictionary = word_list.filter do |word|
+    dictionary = word_list.filter do |word|
       word.length > 5 && word.length < 12
     end
-    @secret_word = @dictionary.sample
-  end
-
-  def new_secret_word
-    @secret_word = @dictionary.sample
+    @secret_word = dictionary.sample
   end
 end
 
-class Player
+class Game
   def initialize
-    @name = ''
+    @secret_word = Dictionary.new.secret_word.chars
+    @correct_letters = []
+    @num_wrong_guesses = 0
   end
 
-  def name?
-    print 'What is your name? (default: Player) '
-    name = gets.chomp
-    @name = name.empty? ? 'Player' : name
+  def guess_word
+    print 'Enter a word to guess the entire word (hit enter to skip) '
+    word = gets.chomp
+    word.empty? ? '' : word.downcase
   end
 
-  def guess
+  def check_word(word)
+    word == @secret_word.join
+  end
+
+  def guess_letter
     print 'Which letter do you think the word includes? '
     while (letter = gets.chomp)
       break if letter.length == 1 && /[[:alpha:]]/ =~ letter
@@ -35,34 +37,40 @@ class Player
     end
     letter
   end
-end
 
-class Game
-  def initialize
-    @dictionary = Dictionary.new
-    @player = Player.new
-    @correct_letters = []
-    @num_wrong_guesses = 0
-  end
-
-  def check_guess(letter)
-    if @dictionary.secret_word.chars.include?(letter)
+  def check_letter(letter)
+    if @secret_word.include?(letter)
       @correct_letters.include?(letter) ? return : @correct_letters << letter
     else
       @num_wrong_guesses += 1
     end
   end
 
-  def play
-    @player.name?
-    until @num_wrong_guesses == 6 || @correct_letters.sort == @dictionary.secret_word.chars.uniq.sort
-      print @dictionary.secret_word
-      letter = @player.guess
-      check_guess(letter)
-      puts "Number of wrong guesses: #{@num_wrong_guesses}"
+  def display_letters
+    @secret_word.each do |char|
+      print @correct_letters.include?(char) ? "#{char} " : '_ '
     end
-    @num_wrong_guesses == 6 ? 'You lose!' : 'You win!'
+  end
+
+  def result
+    puts @num_wrong_guesses == 6 ? 'You lost!' : 'You won!'
+    puts "The word was #{@secret_word.join}"
+  end
+
+  def play
+    until @num_wrong_guesses == 6 || @correct_letters.sort == @secret_word.uniq.sort
+      display_letters
+      puts "| Number of wrong guesses: #{@num_wrong_guesses}"
+      word = guess_word
+      if word.empty?
+        letter = guess_letter
+        check_letter(letter)
+      else
+        check_word(word) ? break : @num_wrong_guesses += 1
+      end
+    end
+    result
   end
 end
 
-p Game.new.play
+Game.new.play
