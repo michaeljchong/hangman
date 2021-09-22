@@ -90,6 +90,18 @@ class Game
     File.open('save.yaml', 'w') { |file| file.puts to_yaml }
   end
 
+  def player_input
+    word = guess_word
+    if word.empty?
+      check_letter(guess_letter)
+    else
+      return FALSE if check_word(word)
+
+      self.num_wrong_guesses += 1
+    end
+    TRUE
+  end
+
   def show_result
     puts num_wrong_guesses == MAX_GUESSES ? 'You lost!' : 'You won!'
     puts "The word was #{secret_word.join}"
@@ -100,12 +112,7 @@ class Game
           correct_letters.sort == secret_word.uniq.sort
       show_current_state
       prompt_save_game
-      word = guess_word
-      if word.empty?
-        check_letter(guess_letter)
-      else
-        check_word(word) ? break : self.num_wrong_guesses += 1
-      end
+      break unless player_input
     end
     show_result
   end
