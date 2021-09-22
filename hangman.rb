@@ -12,9 +12,12 @@ class Dictionary
 end
 
 class Game
+  MAX_GUESSES = 6
+
   def initialize
     @secret_word = Dictionary.new.secret_word.chars
     @correct_letters = []
+    @incorrect_letters = []
     @num_wrong_guesses = 0
   end
 
@@ -33,7 +36,7 @@ class Game
     while (letter = gets.chomp)
       break if letter.length == 1 && /[[:alpha:]]/ =~ letter
 
-      print 'Invalid input. Enter a single alphabetic charcter: '
+      print 'Invalid input. Enter a single alphabetic character: '
     end
     letter
   end
@@ -42,6 +45,7 @@ class Game
     if @secret_word.include?(letter)
       @correct_letters.include?(letter) ? return : @correct_letters << letter
     else
+      @incorrect_letters << letter
       @num_wrong_guesses += 1
     end
   end
@@ -53,14 +57,15 @@ class Game
   end
 
   def result
-    puts @num_wrong_guesses == 6 ? 'You lost!' : 'You won!'
+    puts @num_wrong_guesses == MAX_GUESSES ? 'You lost!' : 'You won!'
     puts "The word was #{@secret_word.join}"
   end
 
   def play
-    until @num_wrong_guesses == 6 || @correct_letters.sort == @secret_word.uniq.sort
+    until @num_wrong_guesses == MAX_GUESSES || @correct_letters.sort == @secret_word.uniq.sort
       display_letters
-      puts "| Number of wrong guesses: #{@num_wrong_guesses}"
+      puts "| Number of wrong guesses: #{@num_wrong_guesses}/#{MAX_GUESSES}"
+      puts "Incorrect letters: #{@incorrect_letters.join(' ')}"
       word = guess_word
       if word.empty?
         letter = guess_letter
