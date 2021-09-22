@@ -6,7 +6,7 @@ class Dictionary
   def initialize
     file = File.open('5desk.txt', 'r')
     word_list = file.readlines.map { |word| word.strip.downcase }
-    dictionary = word_list.filter { |word| word.length > 5 && word.length < 12 }
+    dictionary = word_list.select { |word| word.length > 5 && word.length < 12 }
     @secret_word = dictionary.sample
   end
 end
